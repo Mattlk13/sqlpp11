@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Roland Bock
+ * Copyright (c) 2016-2020, Roland Bock, MacDue
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -23,32 +23,28 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * NOTE:
- * This code must not compile (it is used to test the absence of a conversion operator)
- */
-
 #include "Sample.h"
-#include "MockDb.h"
+#include "compare.h"
 #include <sqlpp11/sqlpp11.h>
 
-EnforceDb edb{};
+SQLPP_ALIAS_PROVIDER(dueutil)
 
-int main()
-{
-  const auto t = test::TabBar{};
+int Over(int, char* []) {
+  auto const foo = test::TabFoo{};
 
-  static_assert(sqlpp::can_be_null_t<decltype(t.alpha)>::value, "t.alpha can be null");
-  static_assert(not sqlpp::null_is_trivial_value_t<decltype(t.alpha)>::value, "t.alpha does not say null_is_trivial");
+  // no/auto alias (wrapped in select so alias is applied)
+  compare(__LINE__, select(avg(foo.omega).over()), "SELECT AVG(tab_foo.omega) OVER() AS avg_");
+  compare(__LINE__, select(count(foo.omega).over()), "SELECT COUNT(tab_foo.omega) OVER() AS count_");
+  compare(__LINE__, select(max(foo.omega).over()), "SELECT MAX(tab_foo.omega) OVER() AS max_");
+  compare(__LINE__, select(min(foo.omega).over()), "SELECT MIN(tab_foo.omega) OVER() AS min_");
+  compare(__LINE__, select(sum(foo.omega).over()), "SELECT SUM(tab_foo.omega) OVER() AS sum_");
 
-  for (const auto& row : edb(select(all_of(t)).from(t).unconditionally()))
-  {
-    static_assert(sqlpp::can_be_null_t<decltype(row.alpha)>::value, "row.alpha can be null");
-    static_assert(not sqlpp::null_is_trivial_value_t<decltype(row.alpha)>::value,
-                  "row.alpha does not interpret null_is_trivial");
-
-    int i = row.alpha;
-  }
+  // alias
+  compare(__LINE__, avg(foo.omega).over().as(dueutil), "AVG(tab_foo.omega) OVER() AS dueutil");
+  compare(__LINE__, count(foo.omega).over().as(dueutil), "COUNT(tab_foo.omega) OVER() AS dueutil");
+  compare(__LINE__, max(foo.omega).over().as(dueutil), "MAX(tab_foo.omega) OVER() AS dueutil");
+  compare(__LINE__, min(foo.omega).over().as(dueutil), "MIN(tab_foo.omega) OVER() AS dueutil");
+  compare(__LINE__, sum(foo.omega).over().as(dueutil), "SUM(tab_foo.omega) OVER() AS dueutil");
 
   return 0;
 }

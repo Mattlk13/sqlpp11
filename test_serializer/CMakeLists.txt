@@ -31,8 +31,10 @@ set(test_serializer_names
 	From
 	In
 	Insert
+  Over
 	TableAlias
 	Where
+	ParameterizedVerbatim
   )
 
 create_test_sourcelist(test_serializer_sources test_serializer_main.cpp ${test_serializer_names})
@@ -45,7 +47,7 @@ if (SQLPP11_TESTS_CXX_STD)
   set_property(TARGET sqlpp11_test_serializer PROPERTY CXX_STANDARD_REQUIRED yes)
   set_property(TARGET sqlpp11_test_serializer PROPERTY CXX_EXTENSIONS no)
 endif()
-  
+
 foreach(test_serializer IN LISTS test_serializer_names)
   add_test(NAME sqlpp11.test_serializer.${test_serializer}
     COMMAND sqlpp11_test_serializer ${test_serializer}
